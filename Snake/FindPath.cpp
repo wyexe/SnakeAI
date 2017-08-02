@@ -20,9 +20,13 @@ CFindPath::CFindPath(_In_ DWORD dwWidth, _In_ DWORD dwHeight) : _dwWidth(dwWidth
 BOOL CFindPath::GetNextDirection(_In_ CONST std::deque<POINT>& VecSnake, _In_ CONST POINT& Food, _Out_ CSnake::em_Snake_Direction& NextDir)
 {
 	ClearChess();
-	for (CONST auto& itm : VecSnake)
-		_Chess.at(itm.x).at(itm.y).bEnable = false;
 
+	for (CONST auto& itm : VecSnake)
+	{
+		_Chess.at(itm.x).at(itm.y).bEnable = false;
+	}
+
+	_Chess.at(Food.x).at(Food.y).bEnable = true;
 	
 	return FindPath_AStar(ConvertPoint(VecSnake.at(0)), ConvertPoint(Food), NextDir);
 }
@@ -86,7 +90,10 @@ VOID CFindPath::Move(_In_ CONST Point& Pt, _In_ CONST Vertex* pFather, _In_ CONS
 			Vertex& Vertex_ = _Chess.at(NextStepPoint.X).at(NextStepPoint.Y);
 			Vertex_.bEnable = false;
 			Vertex_.Father = const_cast<Vertex *>(pFather);
-			Vertex_.fDis = MyTools::CLPublic::GetDisBy2D(Vertex_.Pt, Food);
+			// Å·¼¸Àï¾àÀë
+			//Vertex_.fDis = MyTools::CLPublic::GetDisBy2D(Vertex_.Pt, Food);
+			// Âü¹þ¶Ù¾àÀë
+			Vertex_.fDis = static_cast<float>(abs(Vertex_.Pt.X - Food.X) + abs(Vertex_.Pt.Y - Food.Y));
 			VecSearch.push_back(&Vertex_);
 		}
 		NextStepPoint = Pt;
@@ -104,15 +111,16 @@ CSnake::em_Snake_Direction CFindPath::FindRootChess(_In_ CONST Point& CurPos, _I
 	while (Vertex_->Father != nullptr)
 		Vertex_ = Vertex_->Father;
 
-	int nAbsX = static_cast<int>(CurPos.X) - static_cast<int>(Vertex_->Pt.X);
+	return ComprDirection(CurPos, Vertex_->Pt);
+	/*int nAbsX = static_cast<int>(CurPos.X) - static_cast<int>(Vertex_->Pt.X);
 	int nAbsY = static_cast<int>(CurPos.Y) - static_cast<int>(Vertex_->Pt.Y);
 
 	if (nAbsX == 0)
 		return nAbsY > 0 ? CSnake::em_Snake_Direction::em_Snake_Direction_Top : CSnake::em_Snake_Direction::em_Snake_Direction_Bottom;
-	else if(nAbsY == 0)
+	else if (nAbsY == 0)
 		return nAbsX > 0 ? CSnake::em_Snake_Direction::em_Snake_Direction_Left : CSnake::em_Snake_Direction::em_Snake_Direction_Right;
 
-	return CSnake::em_Snake_Direction::em_Snake_Direction_None;
+	return CSnake::em_Snake_Direction::em_Snake_Direction_None;*/
 }
 
 CFindPath::Point CFindPath::ConvertPoint(_In_ CONST POINT& Pt) CONST
@@ -134,4 +142,17 @@ VOID CFindPath::ClearChess()
 			itm.at(j).Clear();
 		}
 	}
+}
+
+CSnake::em_Snake_Direction CFindPath::ComprDirection(_In_ CONST Point& CurPoint, _In_ CONST Point& TarPoint) CONST
+{
+	int nAbsX = static_cast<int>(CurPoint.X) - static_cast<int>(TarPoint.X);
+	int nAbsY = static_cast<int>(CurPoint.Y) - static_cast<int>(TarPoint.Y);
+
+	if (nAbsX == 0)
+		return nAbsY > 0 ? CSnake::em_Snake_Direction::em_Snake_Direction_Top : CSnake::em_Snake_Direction::em_Snake_Direction_Bottom;
+	else if (nAbsY == 0)
+		return nAbsX > 0 ? CSnake::em_Snake_Direction::em_Snake_Direction_Left : CSnake::em_Snake_Direction::em_Snake_Direction_Right;
+
+	return CSnake::em_Snake_Direction::em_Snake_Direction_None;
 }

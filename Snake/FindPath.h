@@ -41,6 +41,7 @@ public:
 	~CFindPath() = default;
 
 	BOOL GetNextDirection(_In_ CONST std::deque<POINT>& VecSnake, _In_ CONST POINT& Food, _Out_ CSnake::em_Snake_Direction& NextDir);
+
 private:
 	// A*
 	BOOL FindPath_AStar(_In_ CONST Point& VecSnakeHead, _In_ CONST Point& Food, _Out_opt_ CSnake::em_Snake_Direction& NextDir);
@@ -62,6 +63,8 @@ private:
 
 	//
 	VOID ClearChess();
+
+	CSnake::em_Snake_Direction ComprDirection(_In_ CONST Point& CurPoint, _In_ CONST Point& TarPoint) CONST;
 private:
 	DWORD _dwWidth;
 	DWORD _dwHeight;

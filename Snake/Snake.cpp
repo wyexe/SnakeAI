@@ -1,8 +1,9 @@
 #include "Snake.h"
 #include <MyTools/Character.h>
 #include <MyTools/CLPublic.h>
+#include <MyTools/CLFile.h>
 #include <conio.h>
-#include "FindPath.h"
+#include "SnakeAI.h"
 
 CSnake::CSnake()
 {
@@ -19,9 +20,9 @@ VOID CSnake::CreateSnake()
 
 VOID CSnake::Run(_In_ DWORD dwWidth, _In_ DWORD dwHeight, _In_ em_Snake_Difficulty emDifficulty)
 {
-	CFindPath FindPath(dwWidth, dwHeight);
-	Initialize(dwWidth, dwHeight);
+	CSnakeAI SnakeAI(dwWidth, dwHeight, _Wall);
 	Ready();
+	Initialize(dwWidth, dwHeight);
 
 	CONST DWORD dwSleepTime = GetSleepTime(emDifficulty);
 	em_Snake_Direction emLastDirection = em_Snake_Direction::em_Snake_Direction_None;
@@ -29,7 +30,13 @@ VOID CSnake::Run(_In_ DWORD dwWidth, _In_ DWORD dwHeight, _In_ em_Snake_Difficul
 
 	for(;;)
 	{
-		em_Snake_Direction emSnakeCurrentDirection = em_Snake_Direction::em_Snake_Direction_None;
+		/*for (;;)
+		{
+			if (_kbhit() && _getch() == VK_SPACE)
+				break;
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		}*/
 		/*for (int i = 0; i < 10 || true ; ++i)
 		{
 			if (_kbhit())
@@ -56,28 +63,43 @@ VOID CSnake::Run(_In_ DWORD dwWidth, _In_ DWORD dwHeight, _In_ em_Snake_Difficul
 			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		}*/
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-		if (!FindPath.GetNextDirection(_DeqSnake, _Food, emSnakeCurrentDirection) || emSnakeCurrentDirection == em_Snake_Direction::em_Snake_Direction_None)
+		static int SleepTime = 20;
+		if (_kbhit())
 		{
-			// Find Snake Tail Path
-			auto& SnakeTail = _DeqSnake.back();
-			if (!FindPath.GetNextDirection(_DeqSnake, SnakeTail, emSnakeCurrentDirection) || emSnakeCurrentDirection == em_Snake_Direction::em_Snake_Direction_None)
+			switch (_getch())
 			{
-				::MessageBoxW(NULL, L"Invalid Path!", L"", NULL);
-				continue;
+			case 'W':case 'w':
+				SleepTime -= 10;
+				break;
+			case 'S': case 's':
+				SleepTime += 10;
+				break;
+			default:
+				break;
 			}
 		}
 
-		emSnakeCurrentDirection = emSnakeCurrentDirection == em_Snake_Direction::em_Snake_Direction_None ? emLastDirection : emSnakeCurrentDirection;
-		if (!TurnToDirection(emSnakeCurrentDirection))
+
+		em_Snake_Direction NextDir = em_Snake_Direction::em_Snake_Direction_None;
+		if (!SnakeAI.GetNextDirection(_DeqSnake, _Food, NextDir))
+		{
+			::MessageBoxW(NULL, L"Invalid Path!", L"", NULL);
+
+			int nBackStep = 1;
+			BackToRecord(nBackStep, dwWidth, dwHeight);
+			continue;
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(SleepTime));
+		NextDir = NextDir == em_Snake_Direction::em_Snake_Direction_None ? emLastDirection : NextDir;
+		if (!TurnToDirection(NextDir))
 		{
 			GameOver();
 			Initialize(dwWidth, dwHeight);
 			Ready();
 			continue;
 		}
-		emLastDirection = emSnakeCurrentDirection;
+		emLastDirection = NextDir;
 	}
 }
 
@@ -222,7 +244,7 @@ BOOL CSnake::SetSnakeNextStep(_In_ em_Snake_Direction emDir, _In_ CONST POINT& N
 		// Update Old Head to Body
 		CWall::PrintSnakeByPoint(_DeqSnake.at(1), CWall::em_PrintType::em_PrintType_SnakeBody);
 	}
-	
+	AddToRecord();
 	return TRUE;
 }
 
@@ -231,9 +253,53 @@ BOOL CSnake::IsKnockSnakeBody(_In_ CONST POINT& Tar) CONST
 	return MyTools::CLPublic::Deque_find_if(_DeqSnake, static_cast<POINT*>(nullptr), [Tar](_In_ CONST POINT& itm) { return itm.x == Tar.x && itm.y == Tar.y; });
 }
 
-VOID CSnake::Ready() CONST
+VOID CSnake::Ready()
 {
-	while (!_kbhit())
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	BOOL bReady = FALSE;
+	while (!_kbhit() && !bReady)
+	{
+		switch (_getch())
+		{
+		case VK_SPACE:
+			bReady = TRUE;
+			break;
+		default:
+			break;
+		}
 
+		
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	}
+
+}
+
+VOID CSnake::AddToRecord()
+{
+	SnakeRecordContent Content;
+	Content.Food = _Food;
+	Content.Snake = _DeqSnake;
+	_VecRecord.push_back(Content);
+}
+
+VOID CSnake::BackToRecord(int nCount, _In_ DWORD dwWidth, _In_ DWORD dwHeight)
+{
+	for (int i = 0;i < nCount; ++i)
+	{
+		_VecRecord.erase(_VecRecord.end() - 1);
+	}
+
+	_Wall.Clear();
+	_Wall.CreateWall(dwHeight, dwWidth);
+
+	auto Content = _VecRecord.back();
+	_VecRecord.erase(_VecRecord.end() - 1);
+
+	_Food = Content.Food;
+	_Wall.PrintSnakeByPoint(_Food, CWall::em_PrintType::em_PrintType_Food);
+
+	_DeqSnake = Content.Snake;
+	for(CONST auto& itm : _DeqSnake)
+	{
+		CWall::PrintSnakeByPoint(itm, CWall::em_PrintType::em_PrintType_SnakeBody);
+	}
 }

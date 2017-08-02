@@ -5,6 +5,7 @@
 #include <MyTools/ClassInstance.h>
 #include "Wall.h"
 
+class CSnakeAI;
 class CSnake : public MyTools::CClassInstance<CSnake>
 {
 public:
@@ -21,6 +22,12 @@ public:
 		em_Snake_Direction_Left,
 		em_Snake_Direction_Right,
 		em_Snake_Direction_Bottom
+	};
+
+	struct SnakeRecordContent
+	{
+		POINT Food;
+		std::deque<POINT> Snake;
 	};
 public:
 	CSnake();
@@ -51,13 +58,17 @@ private:
 
 	BOOL IsKnockSnakeBody(_In_ CONST POINT& Tar) CONST;
 
-	VOID Ready() CONST;
+	VOID Ready();
+
+	VOID AddToRecord();
+
+	VOID BackToRecord(int nCount, _In_ DWORD dwWidth, _In_ DWORD dwHeight);
 private:
 	CWall _Wall;
 	POINT _Food;
 	BOOL _bWin;
 	std::deque<POINT> _DeqSnake;
-
+	std::deque<SnakeRecordContent> _VecRecord;
 };
 
 
