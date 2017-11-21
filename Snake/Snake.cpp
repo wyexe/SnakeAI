@@ -10,6 +10,24 @@ CSnake::CSnake()
 	ZeroMemory(&_Food, sizeof(_Food));
 }
 
+CSnake::em_Snake_Direction CSnake::ReverseDir(_In_ em_Snake_Direction Dir)
+{
+	switch (Dir)
+	{
+	case CSnake::em_Snake_Direction::em_Snake_Direction_Top:
+		return em_Snake_Direction::em_Snake_Direction_Bottom;
+	case CSnake::em_Snake_Direction::em_Snake_Direction_Left:
+		return em_Snake_Direction::em_Snake_Direction_Right;
+	case CSnake::em_Snake_Direction::em_Snake_Direction_Right:
+		return em_Snake_Direction::em_Snake_Direction_Left;
+	case CSnake::em_Snake_Direction::em_Snake_Direction_Bottom:
+		return em_Snake_Direction::em_Snake_Direction_Top;
+	default:
+		break;
+	}
+	return Dir;
+}
+
 VOID CSnake::CreateSnake()
 {
 	POINT ShakeHead = {static_cast<LONG>(_Wall.GetWidth() / 2), static_cast<LONG>(_Wall.GetHeight() / 2)};
@@ -81,11 +99,19 @@ VOID CSnake::Run(_In_ DWORD dwWidth, _In_ DWORD dwHeight, _In_ em_Snake_Difficul
 
 
 		em_Snake_Direction NextDir = em_Snake_Direction::em_Snake_Direction_None;
-		if (!SnakeAI.GetNextDirection(_DeqSnake, _Food, NextDir))
+		BOOL bFind = FALSE;
+
+		POINT EmptyPoint;
+		if (FindEmptyPoint(EmptyPoint))
+			bFind = SnakeAI.GetNextDirection(_DeqSnake, EmptyPoint, NextDir);
+		else
+			bFind = SnakeAI.GetNextDirection(_DeqSnake, _Food, NextDir);
+		
+		if (!bFind)
 		{
 			::MessageBoxW(NULL, L"Invalid Path!", L"", NULL);
 
-			int nBackStep = 1;
+			int nBackStep = 10;
 			BackToRecord(nBackStep, dwWidth, dwHeight);
 			continue;
 		}
@@ -163,27 +189,7 @@ VOID CSnake::GameOver() CONST
 
 BOOL CSnake::TurnToDirection(_In_ em_Snake_Direction emDir)
 {
-	auto Head = *_DeqSnake.begin();
-	switch (emDir)
-	{
-	case CSnake::em_Snake_Direction::em_Snake_Direction_None:
-		return TRUE;
-	case CSnake::em_Snake_Direction::em_Snake_Direction_Top:
-		Head.y -= 1;
-		break;
-	case CSnake::em_Snake_Direction::em_Snake_Direction_Left:
-		Head.x -= 1;
-		break;
-	case CSnake::em_Snake_Direction::em_Snake_Direction_Right:
-		Head.x += 1;
-		break;
-	case CSnake::em_Snake_Direction::em_Snake_Direction_Bottom:
-		Head.y += 1;
-		break;
-	default:
-		break;
-	}
-
+	auto Head = ConvertToPoint(*_DeqSnake.begin(), emDir);
 	return SetSnakeNextStep(emDir, Head);
 }
 
@@ -214,6 +220,12 @@ BOOL CSnake::SetSnakeNextStep(_In_ em_Snake_Direction emDir, _In_ CONST POINT& N
 		CWall::PrintSnakeByPoint(Tail, CWall::em_PrintType::em_PrintType_Empty);
 
 		_DeqSnake.pop_back();
+
+		if (_DeqSnake.size() >= 2)
+		{
+			Tail = _DeqSnake.back();
+			CWall::PrintSnakeByPoint(Tail, CWall::em_PrintType::em_PrintType_SnakeTail);
+		}
 	}
 	
 
@@ -275,6 +287,9 @@ VOID CSnake::Ready()
 
 VOID CSnake::AddToRecord()
 {
+	if (_VecRecord.size() > 1000)
+		_VecRecord.erase(_VecRecord.begin(), _VecRecord.begin() + 500);
+
 	SnakeRecordContent Content;
 	Content.Food = _Food;
 	Content.Snake = _DeqSnake;
@@ -283,15 +298,10 @@ VOID CSnake::AddToRecord()
 
 VOID CSnake::BackToRecord(int nCount, _In_ DWORD dwWidth, _In_ DWORD dwHeight)
 {
-	for (int i = 0;i < nCount; ++i)
-	{
-		_VecRecord.erase(_VecRecord.end() - 1);
-	}
-
 	_Wall.Clear();
 	_Wall.CreateWall(dwHeight, dwWidth);
 
-	auto Content = _VecRecord.back();
+	auto Content = *(_VecRecord.end() - nCount);
 	_VecRecord.erase(_VecRecord.end() - 1);
 
 	_Food = Content.Food;
@@ -302,4 +312,70 @@ VOID CSnake::BackToRecord(int nCount, _In_ DWORD dwWidth, _In_ DWORD dwHeight)
 	{
 		CWall::PrintSnakeByPoint(itm, CWall::em_PrintType::em_PrintType_SnakeBody);
 	}
+
+	_VecRecord.clear();
+}
+
+BOOL CSnake::FindEmptyPoint(_Out_ POINT& Pt) CONST
+{
+	auto Vec = _Wall.GetVecUsefulPoint(_DeqSnake, _Food);
+	if (Vec.size() == 0)
+		return FALSE;
+
+	CONST static std::vector<CSnake::em_Snake_Direction> VecDir =
+	{
+		CSnake::em_Snake_Direction::em_Snake_Direction_Top,
+		CSnake::em_Snake_Direction::em_Snake_Direction_Left,
+		CSnake::em_Snake_Direction::em_Snake_Direction_Right,
+		CSnake::em_Snake_Direction::em_Snake_Direction_Bottom
+	};
+
+	for (auto& itm : Vec)
+	{
+		BOOL bEmpty = TRUE;
+		for (auto emDir : VecDir)
+		{
+			auto DirPt = ConvertToPoint(itm, emDir);
+			if (_Wall.IsKnockWall(DirPt))
+				continue;
+			if(DirPt.x == _Food.x && DirPt.x == _Food.y)
+				continue;
+			if (!MyTools::CLPublic::Deque_find_if(_DeqSnake, static_cast<POINT*>(nullptr), [DirPt](CONST POINT& SnkeBodyPoint) { return SnkeBodyPoint.x == DirPt.x && SnkeBodyPoint.y == DirPt.y; }))
+			{
+				bEmpty = FALSE;
+				break;
+			}
+		}
+
+		if (bEmpty)
+		{
+			Pt = itm;
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+POINT CSnake::ConvertToPoint(_In_ CONST POINT& Pt, _In_ em_Snake_Direction emDir) CONST
+{
+	POINT Head = Pt;
+	switch (emDir)
+	{
+	case CSnake::em_Snake_Direction::em_Snake_Direction_Top:
+		Head.y -= 1;
+		break;
+	case CSnake::em_Snake_Direction::em_Snake_Direction_Left:
+		Head.x -= 1;
+		break;
+	case CSnake::em_Snake_Direction::em_Snake_Direction_Right:
+		Head.x += 1;
+		break;
+	case CSnake::em_Snake_Direction::em_Snake_Direction_Bottom:
+		Head.y += 1;
+		break;
+	default:
+		break;
+	}
+	return Head;
 }

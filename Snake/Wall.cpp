@@ -118,14 +118,17 @@ VOID CWall::PrintByPoint(_In_ POINT TarPoint, _In_ em_PrintType emPrintType)
 		{ em_PrintType::em_PrintType_RightWall, L'▏' },{ em_PrintType::em_PrintType_BottomWall, L'▔' },
 		{ em_PrintType::em_PrintType_SnakeHead_Dir_Top, L'▲' },{ em_PrintType::em_PrintType_SnakeHead_Dir_Bottom, L'▼' },
 		{ em_PrintType::em_PrintType_SnakeHead_Dir_Left, L'◀' },{ em_PrintType::em_PrintType_SnakeHead_Dir_Right, L'▶' },
-		{ em_PrintType::em_PrintType_SnakeBody, L'■'},
+		{ em_PrintType::em_PrintType_SnakeBody, L'■'}, { em_PrintType::em_PrintType_SnakeTail, L'■' },
 		{ em_PrintType::em_PrintType_Food, L'★' },{ em_PrintType::em_PrintType_Empty, L' '},
 	};
 
 	auto pElement = MyTools::CLPublic::Vec_find_if_Const(VecContent, [emPrintType](CONST PrintContent& Content) { return Content.emType == emPrintType; });
 	if (pElement != nullptr)
 	{
+		::SetConsoleTextAttribute(hOut, pElement->emType == em_PrintType::em_PrintType_SnakeTail ? BACKGROUND_BLUE : 0x7);
 		std::wcout << pElement->wchText;
+		if(pElement->emType == em_PrintType::em_PrintType_Empty)
+			std::wcout << pElement->wchText;
 	}
 }
 

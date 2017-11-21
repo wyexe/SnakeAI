@@ -19,7 +19,8 @@ public:
 		em_PrintType_SnakeHead_Dir_Left,
 		em_PrintType_SnakeHead_Dir_Right,
 		em_PrintType_SnakeBody,
-		em_PrintType_Food
+		em_PrintType_Food,
+		em_PrintType_SnakeTail
 	};
 public:
 	CWall();

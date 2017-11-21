@@ -22,6 +22,7 @@ public:
 		em_Snake_Direction_Left,
 		em_Snake_Direction_Right,
 		em_Snake_Direction_Bottom
+
 	};
 
 	struct SnakeRecordContent
@@ -33,6 +34,7 @@ public:
 	CSnake();
 	~CSnake() = default;
 
+	static em_Snake_Direction ReverseDir(_In_ em_Snake_Direction Dir);
 private:
 	CSnake(CONST CSnake&) = delete;
 	CSnake& operator = (CONST CSnake&) = delete;
@@ -63,6 +65,10 @@ private:
 	VOID AddToRecord();
 
 	VOID BackToRecord(int nCount, _In_ DWORD dwWidth, _In_ DWORD dwHeight);
+
+	BOOL FindEmptyPoint(_Out_ POINT& Pt) CONST;
+
+	POINT ConvertToPoint(_In_ CONST POINT& Pt, _In_ em_Snake_Direction emDir) CONST;
 private:
 	CWall _Wall;
 	POINT _Food;

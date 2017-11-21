@@ -148,6 +148,7 @@
     <ClCompile Include="..\..\MyTools\MyTools\CLExpressionCalc.cpp" />
     <ClCompile Include="..\..\MyTools\MyTools\CLFile.cpp" />
     <ClCompile Include="..\..\MyTools\MyTools\CLLock.cpp" />
+    <ClCompile Include="..\..\MyTools\MyTools\CLMath.cpp" />
     <ClCompile Include="..\..\MyTools\MyTools\CLProcess.cpp" />
     <ClCompile Include="..\..\MyTools\MyTools\CLThread.cpp" />
     <ClCompile Include="..\..\MyTools\MyTools\CmdLog.cpp" />
@@ -156,10 +157,12 @@
     <ClCompile Include="..\..\MyTools\MyTools\RelfexClass.cpp" />
     <ClCompile Include="..\..\MyTools\MyTools\RelfexStruct.cpp" />
     <ClCompile Include="..\..\MyTools\MyTools\TimeTick.cpp" />
+    <ClCompile Include="EasyFindPath.cpp" />
     <ClCompile Include="FindPath.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Snake.cpp" />
     <ClCompile Include="SnakeAI.cpp" />
+    <ClCompile Include="SnakePath.cpp" />
     <ClCompile Include="Wall.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -171,6 +174,7 @@
     <ClInclude Include="..\..\MyTools\MyTools\CLExpressionCalc.h" />
     <ClInclude Include="..\..\MyTools\MyTools\CLFile.h" />
     <ClInclude Include="..\..\MyTools\MyTools\CLLock.h" />
+    <ClInclude Include="..\..\MyTools\MyTools\CLMath.h" />
     <ClInclude Include="..\..\MyTools\MyTools\CLProcess.h" />
     <ClInclude Include="..\..\MyTools\MyTools\CLPublic.h" />
     <ClInclude Include="..\..\MyTools\MyTools\CLResManager.h" />
@@ -181,9 +185,11 @@
     <ClInclude Include="..\..\MyTools\MyTools\RelfexStruct.h" />
     <ClInclude Include="..\..\MyTools\MyTools\TimeTick.h" />
     <ClInclude Include="..\..\MyTools\MyTools\ToolsPublic.h" />
+    <ClInclude Include="EasyFindPath.h" />
     <ClInclude Include="FindPath.h" />
     <ClInclude Include="Snake.h" />
     <ClInclude Include="SnakeAI.h" />
+    <ClInclude Include="SnakePath.h" />
     <ClInclude Include="Wall.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

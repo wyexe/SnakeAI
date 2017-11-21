@@ -78,6 +78,15 @@
     <ClCompile Include="SnakeAI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SnakePath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EasyFindPath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\MyTools\MyTools\CLMath.cpp">
+      <Filter>MyTools</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\MyTools\MyTools\Character.h">
@@ -145,6 +154,15 @@
     </ClInclude>
     <ClInclude Include="SnakeAI.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SnakePath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EasyFindPath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\MyTools\MyTools\CLMath.h">
+      <Filter>MyTools</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
